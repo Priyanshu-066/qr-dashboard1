@@ -67,7 +67,7 @@ function renderCards(data) {
 
     container.appendChild(card);
 
-    const qrData = `https://priyanshugupta34701-maker.github.io/qr-dashboard/tracking.html?wid=${item.ID}`;
+    const qrData = `https://priyanshu-066.github.io/qr-dashboard1/tracking.html?wid=${item.ID}`;
 
     QRCode.toCanvas(document.getElementById(qrId), qrData, {
       width: 300,
