@@ -13,10 +13,10 @@ document.getElementById("wholesellerForm").addEventListener("submit", function(e
     body: formData
   })
   .then(res => res.text())
-  .then(res => {
-    alert("Wholeseller Registered Successfully");
-    window.location.href = "index.html";
-  })
+.then(res => {
+  alert("Wholeseller Registered Successfully");
+  location.reload();
+})
   .catch(err => {
     console.log(err);
     alert("Error registering wholeseller");
