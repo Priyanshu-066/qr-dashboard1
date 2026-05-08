@@ -111,17 +111,23 @@ const wid = sessionStorage.getItem("wid") || params.get("wid");
 
   fetch(`https://script.google.com/macros/s/AKfycbxudcAmn6oSYIc1A7lTeF9Lvai8QYuXkqebhpcocTdfPrDMqIjLvn-BL773sli6OxQokg/exec?type=getData&wid=${wid}`)
   .then(res => res.text())
-  .then(html => {
+.then(html => {
 
-    if (html.includes("<td>")) {
-      document.getElementById("dataContainer").innerHTML = html;
-    } else {
-      document.getElementById("dataContainer").innerHTML = `
-        <div class="empty">No customers yet</div>
-      `;
-    }
+  console.log(html);
 
-  })
+  if (html && html.trim() !== "") {
+
+    document.getElementById("dataContainer").innerHTML = html;
+
+  } else {
+
+    document.getElementById("dataContainer").innerHTML = `
+      <div class="empty">No customers yet</div>
+    `;
+
+  }
+
+})
   .catch(err => {
     console.error(err);
     document.getElementById("dataContainer").innerHTML = `
