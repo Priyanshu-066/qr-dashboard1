@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wholesaler Dashboard</title>
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<header class="navbar">
+
+    <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" placeholder="Search wholesalers by name or ID...">
+    </div>
+
+    <div class="center-logo">
+        <img src="images/logo.jpeg" alt="Logo" class="logo">
+    </div>
+
+        <div class="admin-section" onclick="toggleDropdown()">
+    <span>Admin User</span>
+    <i class="fa-solid fa-user-circle"></i>
+
+    <div id="adminDropdown" class="dropdown hidden">
+        <div class="dropdown-item" id="adminDisplay">👤 Admin</div>
+        <div class="dropdown-item logout" onclick="logout(event)">🚪 Logout</div>
+    </div>
+    </div>
+
+</header>
+
+<section class="hero">
+    <div>
+        <h1>Wholesaler Directory</h1>
+        <p>Manage and verify registered distribution partners across the national network.</p>
+    </div>
+
+    <button class="register-btn" onclick="window.location.href='register.html'">+ Register New Wholesaler</button>
+</section>
+
+<section class="stats-container">
+
+  <div class="stat-card">
+    <h3 id="totalWholesellers">0</h3>
+    <p>Total Wholesellers</p>
+  </div>
+
+  <div class="stat-card">
+    <h3 id="totalCustomers">0</h3>
+    <p>Total Customers</p>
+  </div>
+
+</section>
+
+<section class="cards-container" id="cardsContainer">
+</section>
+
+<footer class="stats-bar">
+    <div>Total Partners <strong>1,284</strong></div>
+    <div>Active QR Codes <strong>99.8%</strong></div>
+    <div>New This Month <strong>+24</strong></div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+<!-- 🔴 DELETE CONFIRM MODAL -->
+<div id="deleteModal" class="modal">
+  <div class="modal-box">
+    <h3>Delete Wholeseller</h3>
+    <p id="deleteText">Are you sure?</p>
+
+    <div class="modal-actions">
+      <button class="btn cancel-btn" onclick="closeModal()">Cancel</button>
+      <button class="btn delete-btn" onclick="confirmDelete()">Delete</button>
+    </div>
+
+    <div id="loader" class="loader hidden"></div>
+  </div>
+</div>
+
+</body>
+<script src="js/script.js"></script>
+</html>
