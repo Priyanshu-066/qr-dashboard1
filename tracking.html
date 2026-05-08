@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Secure Registration</title>
+<link rel="stylesheet" href="css/tracking.css">
+</head>
+
+<body>
+
+<div class="form-wrapper">
+
+<div class="form-header">
+  <img src="images/logo.jpeg" class="center-logo">
+  <h1>Kalyan Centenary 2026</h1>
+  <p>Subscription Form</p>
+</div>
+
+<form id="customerForm">
+
+<div class="row">
+  <div>
+    <label>First Name <span>*</span></label>
+    <input type="text" id="name" required>
+  </div>
+
+  <div>
+    <label>Last Name <span>*</span></label>
+    <input type="text" id="lastname" required>
+  </div>
+</div>
+
+<div>
+  <label>Address 1 <span>*</span></label>
+  <input type="text" id="address1" class="full-width" required>
+</div>
+
+<div>
+  <label>Address 2 <span>*</span></label>
+  <input type="text" id="address2" class="full-width" required>
+</div>
+
+<div>
+  <label>Address 3</label>
+  <input type="text" id="address3" class="full-width">
+</div>
+
+<div class="row3">
+  <div>
+    <label>Pincode <span>*</span></label>
+    <input type="text" id="pincode" required>
+  </div>
+
+  <div>
+    <label>City <span>*</span></label>
+    <input type="text" id="city" readonly>
+  </div>
+
+  <div>
+    <label>State <span>*</span></label>
+    <input type="text" id="state" readonly>
+  </div>
+</div>
+
+<div class="row">
+  <div>
+    <label>Phone <span>*</span></label>
+    <input type="tel" id="phone" required>
+  </div>
+
+  <div>
+    <label>Email</label>
+    <input type="email" id="email">
+  </div>
+</div>
+
+<input type="hidden" id="wid">
+
+<button type="submit">Proceed to Pay ₹500 →</button>
+
+</form>
+
+</div>
+
+<script>
+
+// ================= GET WID =================
+const urlParams = new URLSearchParams(window.location.search);
+const wid = urlParams.get("wid") || "";
+
+if (!wid) {
+  document.body.innerHTML = "<h2 style='color:red;text-align:center;margin-top:40px'>Invalid QR Code. Please scan again.</h2>";
+  throw new Error("No WID");
+}
+
+document.getElementById("wid").value = wid;
+
+
+// ================= PINCODE AUTO =================
+document.getElementById("pincode").addEventListener("blur", async function() {
+  const pin = this.value;
+  if (pin.length === 6) {
+    try {
+      const res  = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+      const data = await res.json();
+      if (data[0].Status === "Success") {
+        document.getElementById("city").value  = data[0].PostOffice[0].District;
+        document.getElementById("state").value = data[0].PostOffice[0].State;
+      }
+    } catch (err) {}
+  }
+});
+
+
+// ================= SHA-512 =================
+async function sha512(message) {
+  const msgBuffer  = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest("SHA-512", msgBuffer);
+  const hashArray  = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+
+// ================= FORM SUBMIT =================
+document.getElementById("customerForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+
+  const btn = this.querySelector("button[type=submit]");
+  btn.disabled    = true;
+  btn.textContent = "Please wait...";
+
+  const key         = "GJ7pYZ";
+  const salt        = "ZqPhrDeFyxte05Uh8oHsBpRHtV5OTpyk";
+  const txnid       = "TXN_" + Date.now();
+  const amount      = "500";
+  const firstname   = document.getElementById("name").value.trim();
+  const email       = document.getElementById("email").value.trim() || "noemail@kalyan.org";
+  const phone       = document.getElementById("phone").value.trim();
+  const productinfo = "Kalyan Subscription";
+
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbxudcAmn6oSYIc1A7lTeF9Lvai8QYuXkqebhpcocTdfPrDMqIjLvn-BL773sli6OxQokg/exec";
+  const surl    = GAS_URL + "?redirect=success";
+  const furl    = GAS_URL + "?redirect=fail";
+
+  const hashString = `${key}|${txnid}|${amount}|${productinfo}|${firstname}|${email}|${wid}||||||||||${salt}`;
+
+  // ✅ Build the form FIRST — before any async work
+  // This keeps the form ready so submit() fires without any DOM delay
+  function addField(form, name, value) {
+    const input = document.createElement("input");
+    input.type  = "hidden";
+    input.name  = name;
+    input.value = value;
+    form.appendChild(input);
+  }
+
+  const payuForm    = document.createElement("form");
+  payuForm.method   = "POST";
+  payuForm.action   = "https://secure.payu.in/_payment";
+  payuForm.id       = "payuHiddenForm";
+
+  addField(payuForm, "key",              key);
+  addField(payuForm, "txnid",            txnid);
+  addField(payuForm, "amount",           amount);
+  addField(payuForm, "productinfo",      productinfo);
+  addField(payuForm, "firstname",        firstname);
+  addField(payuForm, "email",            email);
+  addField(payuForm, "phone",            phone);
+  addField(payuForm, "udf1",             wid);
+  addField(payuForm, "service_provider", "payu_paisa");
+  addField(payuForm, "surl",             surl);
+  addField(payuForm, "furl",             furl);
+
+  // hash field placeholder — will be filled after async compute
+  const hashInput = document.createElement("input");
+  hashInput.type  = "hidden";
+  hashInput.name  = "hash";
+  hashInput.value = "";
+  payuForm.appendChild(hashInput);
+
+  document.body.appendChild(payuForm);
+
+  // ✅ Now do async hash — form already in DOM, just need to fill hash value
+  let hash;
+  try {
+    hash = await sha512(hashString);
+  } catch (err) {
+    // crypto.subtle failed — restore button, show message
+    btn.disabled    = false;
+    btn.textContent = "Proceed to Pay ₹500 →";
+    document.body.removeChild(payuForm);
+    document.body.innerHTML += "<p style='color:red;text-align:center'>Browser error. Please open this page in Chrome and try again.</p>";
+    return;
+  }
+
+  // ✅ Fill hash and submit — NO alert, NO extra async, direct submit
+  hashInput.value = hash;
+  payuForm.submit();
+
+});
+</script>
+</body>
+</html>

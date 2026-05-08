@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(to right, #f5f6fa, #efe9dd);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 400px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 30px 25px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.login-box img {
+  width: 70px;
+  margin-bottom: 10px;
+}
+
+.login-box h2 {
+  margin-bottom: 25px;
+}
+
+.input-group {
+  text-align: left;
+  margin-bottom: 18px;
+}
+
+.input-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+}
+
+.input-field {
+  display: flex;
+  align-items: center;
+  background: #f2f4f7;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 6px;
+}
+
+.input-field i {
+  color: #777;
+  margin-right: 10px;
+}
+
+.input-field input {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  background: #f4b400;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.login-btn:hover {
+  background: #e0a800;
+}
+</style>
+</head>
+
+<body>
+
+<div class="login-box">
+
+  <img src="images/logo.jpeg" alt="logo">
+
+  <h2>Admin Login</h2>
+
+  <form id="adminLoginForm">
+
+    <div class="input-group">
+      <label>USERNAME</label>
+      <div class="input-field">
+        <i class="fa fa-user"></i>
+        <input id="username" placeholder="Enter username" required>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label>PASSWORD</label>
+      <div class="input-field">
+        <i class="fa fa-lock"></i>
+        <input id="password" type="password" placeholder="Enter password" required>
+      </div>
+    </div>
+
+    <button class="login-btn" type="submit">Login →</button>
+
+  </form>
+
+</div>
+
+<script>
+document.getElementById("adminLoginForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  const formData = new FormData();
+  formData.append("type", "adminLogin");
+  formData.append("username", username);
+  formData.append("password", password);
+
+  fetch("https://script.google.com/macros/s/AKfycbxudcAmn6oSYIc1A7lTeF9Lvai8QYuXkqebhpcocTdfPrDMqIjLvn-BL773sli6OxQokg/exec", {
+    method: "POST",
+    body: formData
+  })
+  .then(res => res.text())
+  .then(res => {
+
+    if (res.includes("success")) {
+
+      // 🔐 Admin session
+      sessionStorage.setItem("admin", username);
+
+      // 🚀 Redirect
+      window.location.href = "index.html";
+
+    } else {
+      alert("Invalid Admin Credentials");
+    }
+
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Login failed");
+  });
+});
+</script>
+
+</body>
+</html>

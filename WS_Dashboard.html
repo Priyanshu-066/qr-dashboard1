@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wholesaler Dashboard</title>
+
+  <!-- reuse same style -->
+  <link rel="stylesheet" href="css/style.css">
+
+      
+
+  <style>
+
+
+    body {
+      background: #f5f6fa;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+    }
+
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .dashboard-title {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    thead {
+      background: #f4b400;
+      color: #000;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+    }
+
+    tr:hover {
+      background: #f9f9f9;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 20px;
+      color: #777;
+    }
+
+    .logout-btn {
+        background: #e74c3c;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+}
+
+    .logout-btn:hover {
+    background: #c0392b;
+    }
+  </style>
+</head>
+<body>
+
+<div class="dashboard-header">
+  <div class="dashboard-title" id="title">Loading...</div>
+
+   <button onclick="logout()" class="logout-btn">Logout</button>
+</div>
+
+<div class="card">
+  <h3>Your Customers</h3>
+  <div id="dataContainer"></div>
+</div>
+
+<script>
+
+    // 🔐 Session check
+    const storedWid = sessionStorage.getItem("wid");
+
+    if (!storedWid) {
+    alert("Please login first");
+    window.location.href = "login.html";
+    }
+
+const params = new URLSearchParams(window.location.search);
+const wid = sessionStorage.getItem("wid") || params.get("wid");
+
+  document.getElementById("title").innerText = "Dashboard - " + wid;
+
+  fetch(`https://script.google.com/macros/s/AKfycbxudcAmn6oSYIc1A7lTeF9Lvai8QYuXkqebhpcocTdfPrDMqIjLvn-BL773sli6OxQokg/exec?type=getData&wid=${wid}`)
+  .then(res => res.text())
+  .then(html => {
+
+    if (html.includes("<td>")) {
+      document.getElementById("dataContainer").innerHTML = html;
+    } else {
+      document.getElementById("dataContainer").innerHTML = `
+        <div class="empty">No customers yet</div>
+      `;
+    }
+
+  })
+  .catch(err => {
+    console.error(err);
+    document.getElementById("dataContainer").innerHTML = `
+      <div class="empty">Failed to load data</div>
+    `;
+  });
+
+function logout() {
+  sessionStorage.removeItem("wid");
+  window.location.href = "login.html";
+}
+</script>
+
+</body>
+</html>

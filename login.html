@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wholeseller Login</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(to right, #f5f6fa, #efe9dd);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+/* Card */
+.login-box {
+  width: 100%;
+  max-width: 400px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 30px 25px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+/* Logo */
+.login-box img {
+  width: 70px;
+  margin-bottom: 10px;
+}
+
+/* Title */
+.login-box h2 {
+  margin-bottom: 25px;
+  font-size: 22px;
+}
+
+/* Input Group */
+.input-group {
+  text-align: left;
+  margin-bottom: 18px;
+}
+
+.input-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+}
+
+.input-field {
+  display: flex;
+  align-items: center;
+  background: #f2f4f7;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 6px;
+}
+
+.input-field i {
+  color: #777;
+  margin-right: 10px;
+}
+
+.input-field input {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  font-size: 14px;
+}
+
+/* Checkbox */
+.remember {
+  text-align: left;
+  font-size: 13px;
+  margin: 10px 0;
+  color: #555;
+}
+
+/* Button */
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  background: #f4b400;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+  font-size: 15px;
+}
+
+.login-btn:hover {
+  background: #e0a800;
+}
+
+/* 📱 Mobile (small devices) */
+@media (max-width: 480px) {
+  .login-box {
+    padding: 25px 18px;
+  }
+
+  .login-box h2 {
+    font-size: 20px;
+  }
+
+  .input-field {
+    padding: 10px;
+  }
+
+  .login-btn {
+    padding: 11px;
+  }
+}
+
+/* 📱 Tablet */
+@media (min-width: 481px) and (max-width: 768px) {
+  .login-box {
+    max-width: 420px;
+  }
+}
+
+/* 💻 Desktop large */
+@media (min-width: 1200px) {
+  .login-box {
+    max-width: 420px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="login-box">
+
+  <img src="images/logo.jpeg" alt="logo">
+
+  <h2>Wholesaler Login</h2>
+
+  <form id="loginForm">
+
+    <div class="input-group">
+      <label>WHOLESALER ID</label>
+      <div class="input-field">
+        <i class="fa fa-id-card"></i>
+        <input id="wid" placeholder="Enter your ID" required>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label>PASSWORD</label>
+      <div class="input-field">
+        <i class="fa fa-lock"></i>
+        <input id="password" type="password" placeholder="Enter password" required>
+      </div>
+    </div>
+
+    <div class="remember">
+      <input type="checkbox"> Remember me
+    </div>
+
+    <button class="login-btn" type="submit">Submit →</button>
+
+  </form>
+
+</div>
+
+<script>
+// SAME LOGIC (unchanged)
+document.getElementById("loginForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  const wid = document.getElementById("wid").value;
+  const password = document.getElementById("password").value;
+
+  const formData = new FormData();
+  formData.append("type", "login");
+  formData.append("id", wid);
+  formData.append("password", password);
+
+  fetch("https://script.google.com/macros/s/AKfycbxudcAmn6oSYIc1A7lTeF9Lvai8QYuXkqebhpcocTdfPrDMqIjLvn-BL773sli6OxQokg/exec", {
+    method: "POST",
+    body: formData
+  })
+  .then(res => res.text())
+  .then(res => {
+    if (res.includes("success")) {
+      sessionStorage.setItem("wid", wid);
+      window.location.href = "WS_Dashboard.html";
+    } else {
+      alert("Invalid credentials");
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Login failed");
+  });
+});
+</script>
+
+</body>
+</html>
