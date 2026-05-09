@@ -75,6 +75,7 @@ function renderCards(data) {
     });
 
   });
+  updateFilteredStat(data);
 }
 
 
@@ -198,6 +199,29 @@ function loadStats() {
   .then(res => res.json())
   .then(data => {
     document.getElementById("totalWholesellers").innerText = data.length;
+
+    // ✅ Today registrations
+    const todayStr = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+    const todayCount = data.filter(item => {
+      if (!item.CreatedDate) return false;
+      // CreatedDate stored as "DD-MM-YYYY" from Apps Script new Date()
+      // normalise both formats for safe comparison
+      const raw = item.CreatedDate.toString().trim();
+      // try parsing directly
+      const parsed = new Date(raw);
+      if (!isNaN(parsed)) {
+        return parsed.toISOString().slice(0, 10) === todayStr;
+      }
+      // fallback: DD-MM-YYYY → compare after converting
+      const parts = raw.split("-");
+      if (parts.length === 3) {
+        const iso = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        return iso === todayStr;
+      }
+      return false;
+    }).length;
+
+    document.getElementById("statToday").innerText = todayCount;
   });
 
   fetch("https://opensheet.elk.sh/1qaiL7Cd6C8omXEgHa9QsQZShJepWBfM1AAtCQQsW96Y/All_Customers")
@@ -206,7 +230,104 @@ function loadStats() {
     document.getElementById("totalCustomers").innerText = data.length;
   });
 }
+// ================= FILTERED COUNT STAT =================
+function updateFilteredStat(data) {
+  const el = document.getElementById("statFiltered");
+  if (el) el.innerText = data.length;
+}
 
+
+// ================= DATE FILTER =================
+function applyDateFilter() {
+  const startVal = document.getElementById("filterStart").value;
+  const endVal   = document.getElementById("filterEnd").value;
+
+  if (!startVal && !endVal) {
+    renderCards(allData);
+    return;
+  }
+
+  const startMs = startVal ? new Date(startVal).setHours(0, 0, 0, 0)     : 0;
+  const endMs   = endVal   ? new Date(endVal).setHours(23, 59, 59, 999)  : Infinity;
+
+  const filtered = allData.filter(item => {
+    if (!item.CreatedDate) return false;
+    const raw    = item.CreatedDate.toString().trim();
+    let dateMs;
+    const parsed = new Date(raw);
+    if (!isNaN(parsed)) {
+      dateMs = parsed.getTime();
+    } else {
+      // DD-MM-YYYY fallback
+      const parts = raw.split("-");
+      if (parts.length === 3) {
+        dateMs = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`).getTime();
+      } else {
+        return false;
+      }
+    }
+    return dateMs >= startMs && dateMs <= endMs;
+  });
+
+  renderCards(filtered);
+}
+
+
+// ================= RESET FILTER =================
+function resetDateFilter() {
+  document.getElementById("filterStart").value = "";
+  document.getElementById("filterEnd").value   = "";
+  renderCards(allData);
+}
+
+
+// ================= EXPORT CSV =================
+function exportWholesellersCSV() {
+
+  // Export whichever cards are currently rendered — read from allData filtered state
+  const visibleCards = document.querySelectorAll("#cardsContainer .card");
+
+  if (!visibleCards || visibleCards.length === 0) {
+    alert("No wholesalers to export.");
+    return;
+  }
+
+  // Match visible card IDs back to allData to get full row data including CreatedDate
+  const visibleIDs = Array.from(visibleCards).map(card => {
+    return card.querySelector("h2") ? card.querySelector("h2").innerText.trim() : null;
+  }).filter(Boolean);
+
+  const exportRows = allData.filter(item => visibleIDs.includes(item.ID));
+
+  if (exportRows.length === 0) {
+    alert("No data to export.");
+    return;
+  }
+
+  // BOM for Excel UTF-8 compatibility
+  let csv = "\uFEFF";
+  csv += "ID,Name,Location,CreatedDate\n";
+
+  exportRows.forEach(item => {
+    const row = [
+      item.ID       || "",
+      item.Name     || "",
+      item.Location || "",
+      item.CreatedDate || ""
+    ].map(v => '"' + v.toString().replace(/"/g, '""') + '"').join(",");
+    csv += row + "\n";
+  });
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href     = url;
+  a.download = "wholesalers_" + new Date().toISOString().slice(0, 10) + ".csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 // ================= INIT =================
 loadWholesellers();
