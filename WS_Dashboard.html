@@ -4,15 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Wholesaler Dashboard</title>
-
-  <!-- reuse same style -->
   <link rel="stylesheet" href="css/style.css">
 
-      
-
   <style>
-
-
     body {
       background: #f5f6fa;
       font-family: 'Segoe UI', sans-serif;
@@ -36,18 +30,111 @@
       border-radius: 12px;
       padding: 20px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
     }
 
+    /* ── Analytics Cards ── */
+    .analytics-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .analytics-card {
+      flex: 1;
+      min-width: 140px;
+      background: #fff;
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+
+    .analytics-card .label {
+      font-size: 13px;
+      color: #777;
+      margin-bottom: 8px;
+    }
+
+    .analytics-card .value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #f4b400;
+    }
+
+    /* ── Filter Row ── */
+    .filter-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      margin-bottom: 16px;
+    }
+
+    .filter-row label {
+      font-size: 13px;
+      color: #555;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .filter-row input[type="date"] {
+      padding: 7px 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .filter-btn {
+      background: #f4b400;
+      color: #000;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .filter-btn:hover { background: #e0a800; }
+
+    .reset-btn {
+      background: #eee;
+      color: #333;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .reset-btn:hover { background: #ddd; }
+
+    .export-btn {
+      background: #27ae60;
+      color: #fff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      margin-left: auto;
+    }
+
+    .export-btn:hover { background: #219a52; }
+
+    /* ── Table ── */
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 15px;
+      margin-top: 10px;
     }
 
-    thead {
-      background: #f4b400;
-      color: #000;
-    }
+    thead { background: #f4b400; color: #000; }
 
     th, td {
       padding: 10px;
@@ -56,9 +143,7 @@
       font-size: 14px;
     }
 
-    tr:hover {
-      background: #f9f9f9;
-    }
+    tr:hover { background: #f9f9f9; }
 
     .empty {
       text-align: center;
@@ -67,79 +152,227 @@
     }
 
     .logout-btn {
-        background: #e74c3c;
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: 600;
-}
-
-    .logout-btn:hover {
-    background: #c0392b;
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
     }
+
+    .logout-btn:hover { background: #c0392b; }
   </style>
 </head>
 <body>
 
 <div class="dashboard-header">
   <div class="dashboard-title" id="title">Loading...</div>
-
-   <button onclick="logout()" class="logout-btn">Logout</button>
+  <button onclick="logout()" class="logout-btn">Logout</button>
 </div>
 
+<!-- Analytics Cards -->
+<div class="analytics-row">
+  <div class="analytics-card">
+    <div class="label">Total Customers</div>
+    <div class="value" id="statTotal">—</div>
+  </div>
+  <div class="analytics-card">
+    <div class="label">Successful Payments</div>
+    <div class="value" id="statSuccess">—</div>
+  </div>
+  <div class="analytics-card">
+    <div class="label">Amount Collected</div>
+    <div class="value" id="statAmount">—</div>
+  </div>
+</div>
+
+<!-- Filter + Export -->
 <div class="card">
+  <div class="filter-row">
+    <label>
+      Start Date
+      <input type="date" id="startDate">
+    </label>
+    <label>
+      End Date
+      <input type="date" id="endDate">
+    </label>
+    <button class="filter-btn" onclick="applyFilter()">Filter</button>
+    <button class="reset-btn"  onclick="resetFilter()">Reset</button>
+    <button class="export-btn" onclick="exportCSV()">Export CSV</button>
+  </div>
+
   <h3>Your Customers</h3>
   <div id="dataContainer"></div>
 </div>
 
 <script>
 
-    // 🔐 Session check
-    const storedWid = sessionStorage.getItem("wid");
+  // ── Constants ──────────────────────────────────────────────
+  const PAYMENT_AMOUNT = 500;   // ← change this if your fixed amount changes
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbxudcAmn6oSYIc1A7lTeF9Lvai8QYuXkqebhpcocTdfPrDMqIjLvn-BL773sli6OxQokg/exec";
 
-    if (!storedWid) {
+  // ── Session check ──────────────────────────────────────────
+  const storedWid = sessionStorage.getItem("wid");
+  if (!storedWid) {
     alert("Please login first");
     window.location.href = "login.html";
-    }
+  }
 
-const params = new URLSearchParams(window.location.search);
-const wid = sessionStorage.getItem("wid") || params.get("wid");
+  const params = new URLSearchParams(window.location.search);
+  const wid    = sessionStorage.getItem("wid") || params.get("wid");
 
   document.getElementById("title").innerText = "Dashboard - " + wid;
 
-  fetch(`https://script.google.com/macros/s/AKfycbxudcAmn6oSYIc1A7lTeF9Lvai8QYuXkqebhpcocTdfPrDMqIjLvn-BL773sli6OxQokg/exec?type=getData&wid=${wid}`)
-  .then(res => res.text())
-.then(html => {
+  // ── allCustomers holds the full unfiltered dataset ─────────
+  let allCustomers = [];
 
-  console.log(html);
+  // ── Fetch once on load ─────────────────────────────────────
+  fetch(`${GAS_URL}?type=getData&wid=${wid}`)
+    .then(res => res.json())
+    .then(data => {
+      allCustomers = data;
+      renderTable(allCustomers);
+      renderAnalytics(allCustomers);
+    })
+    .catch(err => {
+      console.error(err);
+      document.getElementById("dataContainer").innerHTML =
+        `<div class="empty">Failed to load data</div>`;
+    });
 
-  if (html && html.trim() !== "") {
 
-    document.getElementById("dataContainer").innerHTML = html;
+  // ── Render table from array ────────────────────────────────
+  function renderTable(customers) {
+    if (!customers || customers.length === 0) {
+      document.getElementById("dataContainer").innerHTML =
+        `<div class="empty">No customers found</div>`;
+      return;
+    }
 
-  } else {
-
-    document.getElementById("dataContainer").innerHTML = `
-      <div class="empty">No customers yet</div>
+    let html = `
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Payment</th>
+            <th>Date</th>
+            <th>TxnID</th>
+          </tr>
+        </thead>
+        <tbody>
     `;
 
+    customers.forEach((row, idx) => {
+      html += `
+        <tr>
+          <td>${idx + 1}</td>
+          <td>${row.name}</td>
+          <td>${row.phone}</td>
+          <td>${row.payment}</td>
+          <td>${row.date}</td>
+          <td>${row.txnid}</td>
+        </tr>
+      `;
+    });
+
+    html += `</tbody></table>`;
+    document.getElementById("dataContainer").innerHTML = html;
   }
 
-})
-  .catch(err => {
-    console.error(err);
-    document.getElementById("dataContainer").innerHTML = `
-      <div class="empty">Failed to load data</div>
-    `;
-  });
 
-function logout() {
-  sessionStorage.removeItem("wid");
-  window.location.href = "index.html";
-}
+  // ── Render analytics from array ────────────────────────────
+  function renderAnalytics(customers) {
+    const total    = customers.length;
+    const success  = customers.filter(r =>
+      (r.payment || "").toString().toUpperCase() === "SUCCESS"
+    ).length;
+    const amount   = success * PAYMENT_AMOUNT;
+
+    document.getElementById("statTotal").innerText   = total;
+    document.getElementById("statSuccess").innerText = success;
+    document.getElementById("statAmount").innerText  = "₹" + amount.toLocaleString("en-IN");
+  }
+
+
+  // ── Date filter (pure frontend, no extra fetch) ────────────
+  function applyFilter() {
+    const startVal = document.getElementById("startDate").value;
+    const endVal   = document.getElementById("endDate").value;
+
+    if (!startVal && !endVal) {
+      renderTable(allCustomers);
+      renderAnalytics(allCustomers);
+      return;
+    }
+
+    // Convert input date strings to ms timestamps for comparison
+    const startMs = startVal ? new Date(startVal).setHours(0, 0, 0, 0)    : 0;
+    const endMs   = endVal   ? new Date(endVal).setHours(23, 59, 59, 999) : Infinity;
+
+    const filtered = allCustomers.filter(r => {
+      return r.dateRaw >= startMs && r.dateRaw <= endMs;
+    });
+
+    renderTable(filtered);
+    renderAnalytics(filtered);
+  }
+
+
+  // ── Reset filter ───────────────────────────────────────────
+  function resetFilter() {
+    document.getElementById("startDate").value = "";
+    document.getElementById("endDate").value   = "";
+    renderTable(allCustomers);
+    renderAnalytics(allCustomers);
+  }
+
+
+  // ── Export visible filtered data as CSV ───────────────────
+  function exportCSV() {
+
+    // Grab whichever rows are currently rendered in the table
+    const rows = document.querySelectorAll("#dataContainer table tbody tr");
+
+    if (!rows || rows.length === 0) {
+      alert("No data to export.");
+      return;
+    }
+
+    // BOM prefix so Excel opens Hindi/special chars correctly
+    let csv = "\uFEFF";
+    csv += "Sr,Name,Phone,Payment,Date,TxnID\n";
+
+    rows.forEach(tr => {
+      const cells = tr.querySelectorAll("td");
+      const line  = Array.from(cells).map(td => {
+        // Wrap in quotes to handle commas inside values
+        return '"' + td.innerText.replace(/"/g, '""') + '"';
+      }).join(",");
+      csv += line + "\n";
+    });
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.download = wid + "_customers_" + new Date().toISOString().slice(0,10) + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+
+  // ── Logout ─────────────────────────────────────────────────
+  function logout() {
+    sessionStorage.removeItem("wid");
+    window.location.href = "index.html";
+  }
+
 </script>
-
 </body>
 </html>
