@@ -170,9 +170,12 @@ window.addEventListener("click", function(e) {
 });
 
 function logout(e) {
-  e.stopPropagation();
+
+  if (e) e.stopPropagation();
+
   sessionStorage.removeItem("admin");
-  window.location.href = "admin-login.html";
+
+  window.location.href = "index.html";
 }
 
 
