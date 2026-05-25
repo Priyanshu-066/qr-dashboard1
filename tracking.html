@@ -211,19 +211,6 @@ document.getElementById("wid").value = wid;
 
 
 // ================= PINCODE AUTO =================
-document.getElementById("pincode").addEventListener("blur", async function() {
-  const pin = this.value;
-  if (pin.length === 6) {
-    try {
-      const res  = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
-      const data = await res.json();
-      if (data[0].Status === "Success") {
-        document.getElementById("city").value  = data[0].PostOffice[0].District;
-        document.getElementById("state").value = data[0].PostOffice[0].State;
-      }
-    } catch (err) {}
-  }
-});
 
 
 // ================= SHA-512 =================
