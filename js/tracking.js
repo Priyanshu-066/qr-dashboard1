@@ -29,30 +29,52 @@ document.getElementById("customerForm").addEventListener("submit", function(e){
 
 });
 
-document.getElementById("pincode").addEventListener("blur", function(){
+// ================= PINCODE AUTO =================
+document.getElementById("pincode").addEventListener("blur", async function () {
 
-    const pincode = this.value;
+  const pin = this.value.trim();
 
-    if(pincode.length === 6){
+  if (pin.length !== 6) {
+    return;
+  }
 
-        fetch(`https://api.postalpincode.in/pincode/${pincode}`)
-        .then(res => res.json())
-        .then(data => {
+  try {
 
-            if(data[0].Status === "Success"){
+    const response = await fetch(
+      `https://api.postalpincode.in/pincode/${pin}`
+    );
 
-                document.getElementById("city").value = data[0].PostOffice[0].District;
-                document.getElementById("state").value = data[0].PostOffice[0].State;
+    const data = await response.json();
 
-            } else {
-                alert("Invalid Pincode");
+    console.log("PINCODE RESPONSE:", data);
 
-                document.getElementById("city").value = "";
-                document.getElementById("state").value = "";
-            }
+    if (
+      data &&
+      data[0] &&
+      data[0].Status === "Success" &&
+      data[0].PostOffice &&
+      data[0].PostOffice.length > 0
+    ) {
 
-        });
+      document.getElementById("city").value =
+        data[0].PostOffice[0].District || "";
 
+      document.getElementById("state").value =
+        data[0].PostOffice[0].State || "";
+
+    } else {
+
+      alert("Invalid Pincode");
+
+      document.getElementById("city").value = "";
+      document.getElementById("state").value = "";
     }
+
+  } catch (error) {
+
+    console.error("Pincode fetch error:", error);
+
+    alert("Failed to fetch pincode details");
+  }
 
 });
