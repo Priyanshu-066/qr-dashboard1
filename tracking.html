@@ -527,8 +527,8 @@ document.getElementById("customerForm").addEventListener("submit", async functio
   const surl = GAS_URL + "?redirect=success";
   const furl = GAS_URL + "?redirect=fail";
 
-  const hashString =
-    `${key}|${txnid}|${amount}|${productinfo}|${firstname}|${email}|${wid}||||||||||${salt}`;
+    const hashString =
+  `${key}|${txnid}|${amount}|${productinfo}|${firstname}|${email}|${wid}|||||||||${salt}`;
 
   function addField(form, name, value) {
     const inp = document.createElement("input");
